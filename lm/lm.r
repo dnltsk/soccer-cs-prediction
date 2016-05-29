@@ -88,14 +88,13 @@ dev.off()
 #
 # sample queries
 #
-new_data <- data.frame(h_complete_value=runif(1, min(matches$h_complete_value), max(matches$h_complete_value)), 
-                       g_complete_value=runif(1, min(matches$g_complete_value), max(matches$g_complete_value)))
-predicted_goals_diff <- predict(lm.diff, new_data)
-predicted_goals_home <- predict(lm.home, new_data)
-predicted_goals_guest <- predict(lm.guest, new_data)
+new_data <- data.frame(h_complete_value=runif(5, min(matches$h_complete_value), max(matches$h_complete_value)), 
+                       g_complete_value=runif(5, min(matches$g_complete_value), max(matches$g_complete_value)))
+new_data$predicted_goals_home <- predict(lm.home, new_data)
+new_data$predicted_goals_guest <- predict(lm.guest, new_data)
+new_data$predicted_goals_diff <- predict(lm.diff, new_data)
 
-cat(new_data$h_complete_value, "vs", new_data$g_complete_value, 
-    "->", predicted_goals_home, ":", predicted_goals_guest, "(", predicted_goals_diff, ")")
+new_data
 
 #cleanup
 dbDisconnect(con)
