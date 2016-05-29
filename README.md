@@ -21,7 +21,7 @@ Linear model of the team's plain market value on the pitch.
 
 ```{r}
 new_data <- data.frame(h_complete_value=runif(1, min(matches$h_complete_value), max(matches$h_complete_value)), 
-g_complete_value=runif(1, min(matches$g_complete_value), max(matches$g_complete_value)))
+                       g_complete_value=runif(1, min(matches$g_complete_value), max(matches$g_complete_value)))
 predicted_goals_diff <- predict(lm.diff, new_data)
 predicted_goals_home <- predict(lm.home, new_data)
 predicted_goals_guest <- predict(lm.guest, new_data)
