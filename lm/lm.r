@@ -8,7 +8,7 @@ require("Cairo")
 #
 ggplotRegression <- function (fit) {
   ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
-    geom_point() +
+    geom_jitter(width = 0.25, height = 0.25) +
     stat_smooth(method = "lm", col = "red") +
     labs(title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
                        "Intercept =",signif(fit$coef[[1]],5 ),
@@ -25,6 +25,9 @@ con <- dbConnect(drv, dbname=dbConfig$dbname,host=dbConfig$host,port=dbConfig$po
 generalSelectStmt <- paste(readLines("../general-select-stmt.sql"), collapse="\n")
 matches <- dbGetQuery(con, generalSelectStmt)
 
+#
+# interpred both game perspectived as a single game!!!
+#
 matches.switched <- data.frame(id = -1 * matches$id, 
                                date = matches$date,
                                home = matches$guest,
@@ -42,37 +45,57 @@ matches.switched <- data.frame(id = -1 * matches$id,
                                g_defense_value = matches$h_defense_value,
                                g_midfield_value = matches$h_midfield_value,
                                g_offense_value = matches$h_offense_value)
+matches <- rbind(matches, matches.switched)
 
-lm.diff  <- lm(diff_goals ~ h_complete_value + g_complete_value, data = matches.small)
-lm.home  <- lm(home_goals ~ h_complete_value + g_complete_value, data = matches.small)
-lm.guest <- lm(guest_goals ~ h_complete_value + g_complete_value, data = matches.small)
+lm.diff  <- lm(diff_goals ~ h_complete_value + g_complete_value, data = matches)
+lm.home  <- lm(home_goals ~ h_complete_value + g_complete_value, data = matches)
+lm.guest <- lm(guest_goals ~ h_complete_value + g_complete_value, data = matches)
 
-lm.diff  <- poly(diff_goals ~ h_complete_value + g_complete_value, data = matches.small, 2)
-lm.home  <- lm(home_goals ~ h_complete_value + g_complete_value, data = matches.small)
-lm.guest <- lm(guest_goals ~ h_complete_value + g_complete_value, data = matches.small)
+#plot(lm.diff)
+#plot(lm.home)
+#plot(lm.guest)
 
-ggplotRegression(lm.diff)
-ggplotRegression(lm.home)
-ggplotRegression(lm.guest)
+#
+# comparisson of actual vs predicted match results
+#
+Cairo(file="goals-diff.png", bg="white", type="png", units="in", width=500/72, height=500/72, dpi=72)
+  ggplot(data.frame(actual=jitter(matches$diff_goals, factor=.25), 
+                    predicted=jitter(predict(lm.diff), factor=.25)),
+         aes(actual, predicted)) + 
+    geom_point() + stat_smooth(method = "lm", col = "red") + 
+    theme(plot.title = element_text(lineheight=1, face="bold")) +
+    ggtitle("actual vs. predicted - GOALS DIFF (home - guest)")
+dev.off()
 
-ggplot(data.frame(actual=(jitter(matches.small$diff_goals, factor=.5)), 
-                  predicted=jitter(predict(lm.diff), factor=.5)),
-       aes(actual, predicted)) + 
-  geom_point() + geom_smooth(lm.diff) + ggtitle("actual vs. predicted - GOALS DIFF") +
-  theme(plot.title = element_text(lineheight=1, face="bold"))
+Cairo(file="goals-home.png", bg="white", type="png", units="in", width=500/72, height=500/72, dpi=72)
+  ggplot(data.frame(actual=jitter(matches$home_goals, factor=.25), 
+                    predicted=jitter(predict(lm.home), factor=.25)),
+         aes(actual, predicted)) + 
+    geom_point() + stat_smooth(method = "lm", col = "red") +
+    theme(plot.title = element_text(lineheight=1, face="bold")) +
+    ggtitle("actual vs. predicted - GOALS HOME")
+dev.off()
 
-ggplot(data.frame(actual=(jitter(matches.small$home_goals, factor=.5)), 
-                  predicted=jitter(predict(lm.home), factor=.5)),
-       aes(actual, predicted)) + 
-  geom_point() + geom_smooth() + ggtitle("actual vs. predicted - GOALS HOME") +
-  theme(plot.title = element_text(lineheight=1, face="bold"))
+Cairo(file="goals-guest.png", bg="white", type="png", units="in", width=500/72, height=500/72, dpi=72)
+  ggplot(data.frame(actual=jitter(matches$guest_goals, factor=.25), 
+                    predicted=jitter(predict(lm.guest), factor=.25)),
+         aes(actual, predicted)) + 
+    geom_point() + stat_smooth(method = "lm", col = "red") + 
+    theme(plot.title = element_text(lineheight=1, face="bold")) +
+    ggtitle("actual vs. predicted - GOALS GUEST")
+dev.off()
 
-ggplot(data.frame(actual=(jitter(matches.small$guest_goals, factor=.5)), 
-                  predicted=jitter(predict(lm.guest), factor=.5)),
-       aes(actual, predicted)) + 
-  geom_point() + geom_smooth() + ggtitle("actual vs. predicted - GOALS GUEST") +
-  theme(plot.title = element_text(lineheight=1, face="bold"))
+#
+# sample queries
+#
+new_data <- data.frame(h_complete_value=runif(1, min(matches$h_complete_value), max(matches$h_complete_value)), 
+                       g_complete_value=runif(1, min(matches$g_complete_value), max(matches$g_complete_value)))
+predicted_goals_diff <- predict(lm.diff, new_data)
+predicted_goals_home <- predict(lm.home, new_data)
+predicted_goals_guest <- predict(lm.guest, new_data)
 
-predict(lm.diff, data.frame(h_complete_value=200, g_complete_value=300))
-predict(lm.home, data.frame(h_complete_value=200, g_complete_value=300))
-predict(lm.guest, data.frame(h_complete_value=200, g_complete_value=300))
+cat(new_data$h_complete_value, "vs", new_data$g_complete_value, 
+    "->", predicted_goals_home, ":", predicted_goals_guest, "(", predicted_goals_diff, ")")
+
+#cleanup
+dbDisconnect(con)
