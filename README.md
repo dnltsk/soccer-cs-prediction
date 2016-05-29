@@ -27,7 +27,7 @@ predicted_goals_home <- predict(lm.home, new_data)
 predicted_goals_guest <- predict(lm.guest, new_data)
 
 cat(new_data$h_complete_value, "vs", new_data$g_complete_value, 
-"->", predicted_goals_home, ":", predicted_goals_guest, "(", predicted_goals_diff, ")")
+    "->", predicted_goals_home, ":", predicted_goals_guest, "(", predicted_goals_diff, ")")
 
 336.1862 vs 252.0455 -> 2.40252 : 1.823657 ( 0.6437858 )
 376.0276 vs 105.698 -> 3.207236 : 1.057336 ( 2.068373 )
