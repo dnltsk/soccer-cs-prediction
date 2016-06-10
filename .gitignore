@@ -1,4 +1,6 @@
 db-config.properties
+.idea
+*.iml
 *.jar
 .Rhistory
 .RDataTmp

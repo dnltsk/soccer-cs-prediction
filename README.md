@@ -2,22 +2,18 @@
 Prediction modelling playground for soccer championship data.
 
 ### data source
-Data from [Fuﬂballdaten](http://www.fussballdaten.de) and [Transfermarkt](http://www.transfermarkt.co.uk). PostgresDB hosted at [heliohost](http://heliohost.org).
+* match results and starting 11 from [Fu√üballdaten](http://www.fussballdaten.de)
+* player's master data and market values from [Transfermarkt](http://www.transfermarkt.co.uk).
 
-### content
-Data contains currently 15 national teams[^1] with its 391 national players and its market values. 68 championship or quali matches from the last 10 years (2006-2016).
+### data description
+* dataset is described at [soccer-cs-stats](https://github.com/teeschke/soccer-cs-stats)
 
-Dataset is descriped at [soccer-cs-stats](https://github.com/teeschke/soccer-cs-stats)
+### hosting
+* PostgresDB hosted on [heliohost](http://heliohost.org/)
 
-[^1]: list of national teams: BELGIUM, CROATIA, CZECH_REPUBLIC, ENGLAND, FRANCE, GERMANY, IRELAND, ITALY, POLAND, RUSSIA, SLOVAKIA, SPAIN, SWEDEN, SWITZERLAND, UKRAINE
+### Linear Model
 
-### simple lm
-Linear model of the team's plain market value on the pitch.
-
-![goals-diff](lm/goals-diff.png "goals-diff")
-![goals-home](lm/goals-home.png "goals-home")
-![goals-guest](lm/goals-guest.png "goals-guest")
-
+![goals](lm/goals.png "goals")
 
 ```{r}
 new_data <- data.frame(h_complete_value=runif(5, min(matches$h_complete_value), max(matches$h_complete_value)), 
@@ -33,3 +29,9 @@ new_data$predicted_goals_diff <- predict(lm.diff, new_data)
 4     107.49347650      246.5382373         1.1226026156           2.186475521        -1.0638729052
 5      43.71422874      393.2400116         0.4833563614           3.157682298        -2.6743259364
 ```
+
+### Decision Tree
+
+![goals](dt/goals.png "goals")
+
+![tree](dt/tree.png "tree")
